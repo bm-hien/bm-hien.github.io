@@ -1,10 +1,293 @@
-{
-  "embeds": [
-    {
-      "type": "rich",
-      "title": "Embed troll",
-      "description": "\n".repeat(4096),
-      "url": "https://bm-hien.github.io/"
-    }
-  ]
-}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Terminal Profile</title>
+    <style>
+        body {
+            background: linear-gradient(135deg, #1e1e1e, #3a3a3a);
+            color: white;
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            flex-direction: column;
+        }
+        
+        .title {
+            font-size: 2em;
+            margin-bottom: 20px;
+        }
+
+        .terminal {
+            background-color: black;
+            border: 1px solid #00ff00;
+            padding: 20px;
+            width: 80%;
+            max-width: 600px;
+            height: 300px;
+            overflow-y: auto;
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+            position: relative;
+        }
+        
+        .input-container {
+            display: flex;
+            position: absolute;
+            bottom: 10px;
+            width: calc(100% - 40px);
+            display: none; /* Hide initially */
+        }
+
+        .prompt {
+            color: lime;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1em;
+        }
+
+        .input {
+            color: lime;
+            border: none;
+            background: none;
+            outline: none;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1em;
+            flex-grow: 1;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.9);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: #1e1e1e;
+            border: 1px solid #00ff00;
+            padding: 20px;
+            width: 0;
+            height: 0;
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+            position: relative;
+            display: flex;
+            justify-content: center; /* Center content */
+            align-items: center; /* Center content */
+            flex-direction: column;
+            background-color: black; /* Set background to black */
+            animation: expand 1s forwards; /* Animation to expand */
+        }
+
+        @keyframes expand {
+            from {
+                width: 0;
+                height: 0;
+            }
+            to {
+                width: 90%;
+                height: 90%;
+            }
+        }
+
+        .modal-content iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: none; /* Hide initially */
+        }
+
+        .modal-content button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #00ff00;
+            color: black;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+
+        .flash {
+            color: lime;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1.5em;
+            text-align: left; /* Align text to the left */
+            width: 100%; /* Take full width */
+        }
+    </style>
+</head>
+<body>
+    <div class="title">About Me</div>
+    <div class="terminal" id="terminal">
+        <pre id="output"></pre>
+        <div class="input-container" id="inputContainer">
+            <span class="prompt">root@bmhien:~$</span>
+            <input type="text" class="input" id="terminalInput" autofocus>
+        </div>
+    </div>
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <button onclick="closeModal()">Close</button>
+            <div class="flash" id="flash">Loading...</div>
+            <iframe id="modalIframe" src=""></iframe>
+        </div>
+    </div>
+
+    <script>
+        const bootMessages = [
+            "Initializing system...",
+            "Loading kernel modules...",
+            "Starting system services...",
+            "Mounting filesystems...",
+            "Starting network services...",
+            "System startup complete.",
+            "Welcome to my profile! Here you can find information about me.\nType 'help' to see available commands.\n"
+        ];
+    
+        const terminalOutput = document.getElementById('output');
+        const terminalInput = document.getElementById('terminalInput');
+        const inputContainer = document.getElementById('inputContainer');
+        const modal = document.getElementById('modal');
+        const modalIframe = document.getElementById('modalIframe');
+        const flash = document.getElementById('flash');
+    
+        const commands = ['bmhien', 'help', 'clear', 'currentproject'];
+    
+        function displayMessages(messages, index = 0) {
+            if (index < messages.length - 1) {
+                terminalOutput.innerHTML += messages[index] + '\n';
+                setTimeout(() => displayMessages(messages, index + 1), 1000);
+            } else {
+                setTimeout(() => {
+                    terminalOutput.innerHTML = messages[messages.length - 1];
+                    terminalOutput.scrollTop = terminalOutput.scrollHeight;
+                    inputContainer.style.display = 'flex'; // Show input container
+                }, 1000);
+            }
+        }
+    
+        function handleCommand(command) {
+            switch (command.trim().toLowerCase()) {
+                case 'bmhien':
+                    simulateCoding('bmhien.html');
+                    break;
+                case 'currentproject':
+                    showCurrentProject();
+                    break;
+                case 'help':
+                    terminalOutput.innerHTML += '\nAvailable commands:\n - bmhien: Show profile information\n - currentproject: Show current project\n - help: Show this help message\n - clear: Clear the terminal\n';
+                    break;
+                case 'clear':
+                    terminalOutput.innerHTML = '';
+                    break;
+                default:
+                    terminalOutput.innerHTML += `\nUnknown command: ${command}\n`;
+            }
+            terminalOutput.scrollTop = terminalOutput.scrollHeight;
+        }
+    
+        terminalInput.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                const command = terminalInput.value;
+                terminalOutput.innerHTML += `root@bmhien:~$ ${command}\n`;
+                handleCommand(command);
+                terminalInput.value = '';
+            }
+        });
+    
+        terminalInput.addEventListener('keydown', function(event) {
+            if (event.key === 'Tab') {
+                event.preventDefault();
+                const input = terminalInput.value.trim();
+                const matchedCommands = commands.filter(cmd => cmd.startsWith(input));
+                if (matchedCommands.length === 1) {
+                    terminalInput.value = matchedCommands[0] + ' ';
+                } else if (matchedCommands.length > 1) {
+                    terminalOutput.innerHTML += `\n${matchedCommands.join('    ')}\n`;
+                }
+            }
+        });
+    
+        window.onload = () => {
+            displayMessages(bootMessages);
+        };
+    
+        function simulateCoding(src) {
+            modal.style.display = 'flex';
+            const codeLines = [
+                "// Create an iframe element",
+                "const iframe = document.createElement('iframe');",
+                "// Set the source of the iframe",
+                `iframe.src = '${src}';`,
+                "// Set the width and height of the iframe",
+                "iframe.style.width = '100%';",
+                "iframe.style.height = '100%';",
+                "// Append the iframe to the document body",
+                "document.body.appendChild(iframe);"
+            ];
+            let index = 0;
+    
+            function typeLine() {
+                if (index < codeLines.length) {
+                    flash.innerHTML += codeLines[index] + '<br>';
+                    index++;
+                    setTimeout(typeLine, 100);
+                } else {
+                    setTimeout(() => {
+                        flash.style.display = 'none';
+                        modalIframe.src = src;
+                        modalIframe.style.display = 'block';
+                    }, 1000);
+                }
+            }
+    
+            flash.innerHTML = '';
+            typeLine();
+        }
+    
+        function closeModal() {
+            modal.style.display = 'none';
+            modalIframe.src = '';
+            flash.style.display = 'block';
+            modalIframe.style.display = 'none';
+        }
+    
+        function showCurrentProject() {
+            const projectModal = document.createElement('div');
+            projectModal.style.position = 'fixed';
+            projectModal.style.top = '50%';
+            projectModal.style.left = '50%';
+            projectModal.style.transform = 'translate(-50%, -50%)';
+            projectModal.style.backgroundColor = '#f0f0f0';
+            projectModal.style.border = '1px solid #00ff00';
+            projectModal.style.padding = '20px';
+            projectModal.style.boxShadow = '0 0 10px rgba(0, 255, 0, 0.5)';
+            projectModal.style.zIndex = '2';
+    
+            const textarea = document.createElement('textarea');
+            textarea.value = 'Current Project: Data Breacher';
+            textarea.style.width = '300px';
+            textarea.style.height = '200px';
+            projectModal.appendChild(textarea);
+    
+            const closeButton = document.createElement('button');
+            closeButton.innerText = 'Close';
+            closeButton.style.marginTop = '10px';
+            closeButton.onclick = () => {
+                document.body.removeChild(projectModal);
+            };
+            projectModal.appendChild(closeButton);
+    
+            document.body.appendChild(projectModal);
+        }
+    </script>
+</body>
+</html>
